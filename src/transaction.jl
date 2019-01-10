@@ -2,11 +2,14 @@ module Transaction
 
 using ..Lib
 
-export transaction
+export transaction, TransactionAborted, TransactionEnded
+
+struct TransactionAborted <: Exception end
+struct TransactionEnded <: Exception end
 
 # This is taken from the C++ implementation:
 #
-# https://github.com/pmem/libpmemobj-cpp/blob/master/include/libpmemobj%2B%2B/transaction.hppF:w
+# https://github.com/pmem/libpmemobj-cpp/blob/master/include/libpmemobj%2B%2B/transaction.hpp
 #
 # Pass a closure to the transaction for a given pool pointer. Should automatically deal with
 # cleaning up and rolling back
@@ -37,11 +40,11 @@ function transaction(f, pool)
     # Abort was called in "f" 
     elseif stage == Lib.TX_STAGE_ONABORT
         Lib.tx_end()
-        throw(error("transaction aborted"))
+        throw(TransactionAborted())
 
     # "tx_end" was called in "f"
     elseif stage == Lib.TX_STAGE_NONE
-        throw(error("transaction ended prematurely"))
+        throw(TransactionEnded())
     end
 
     Lib.tx_end()
