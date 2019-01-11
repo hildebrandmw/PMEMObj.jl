@@ -348,6 +348,16 @@ function tx_alloc(size, ::Type{T} = Nothing, typenum = _typenum(T)) where {T}
     return pmemoid
 end
 
+function tx_zalloc(size, ::Type{T} = Nothing, typenum = _typenum(T)) where {T}
+    pmemoid = ccall(
+        (:pmemobj_tx_zalloc, libpmemobj),
+        PersistentOID{T},
+        (Csize_t, Culonglong),
+        size, typenum
+    )
+    return pmemoid
+end
+
 function tx_free(oid::PersistentOID{T}) where {T}
     ret = ccall(
         (:pmemobj_tx_free, libpmemobj),
@@ -359,16 +369,27 @@ function tx_free(oid::PersistentOID{T}) where {T}
     return nothing
 end
 
+function tx_strdup(str, ::Type{T} = UInt8) where {T}
+    typenum = _typenum(T)
+    oid = ccall(
+        (:pmemobj_tx_strdup, libpmemobj),
+        PersistentOID{T},
+        (Cstring, Culonglong),
+        str, typenum
+    )
+    return oid
+end
+
 #####
 ##### pmemobj_tx_add_range
 #####
 
 # http://pmem.io/pmdk/manpages/linux/v1.5/libpmemobj/pmemobj_tx_add_range.3
-function add_range(oid::PersistentOID, off, size)
+function add_range(oid::PersistentOID{T}, off, size) where {T}
     ret = ccall(
         (:pmemobj_tx_add_range, libpmemobj),
         Cint,
-        (PersistentOID, Culonglong, Csize_t),
+        (PersistentOID{T}, Culonglong, Csize_t),
         oid, off, size
     )
     ret != 0 && throw(error("Adding failed: error: $ret"))
@@ -445,6 +466,40 @@ function zalloc(pop::ObjectPool, size, ::Type{T} = Nothing) where {T}
         Cint,
         (Ptr{Cvoid}, Ptr{PersistentOID{T}}, Csize_t, Culonglong),
         pop.ptr, oidp, size, typenum
+    )
+    ret != 0 && throw(error("Allocation failed"))
+
+    return oidp[]
+end
+
+function free(oid::PersistentOID{T}) where {T}
+    ccall(
+        (:pmemobj_free, libpmemobj),
+        Cvoid,
+        (Ptr{PersistentOID{T}},),
+        Ref(oid)
+    )
+
+end
+
+function alloc_usable_size(oid::PersistentOID{T}) where {T}
+    return ccall(
+        (:pmemobj_alloc_usable_size, libpmemobj),
+        Csize_t,
+        (PersistentOID{T},),
+        oid,
+    )
+end
+
+function strdup(pool::ObjectPool, str, ::Type{T} = UInt8) where {T}
+    typenum = _typenum(T)
+    oidp = Ref{PersistentOID{T}}()
+
+    ret = ccall(
+        (:pmemobj_strdup, libpmemobj),
+        Cint,
+        (Ptr{Cvoid}, Ptr{PersistentOID{T}}, Cstring, Culonglong),
+        pool.ptr, oidp, str, typenum
     )
     ret != 0 && throw(error("Allocation failed"))
 
