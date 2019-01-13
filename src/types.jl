@@ -25,22 +25,23 @@ const UINT128_TAG = _tag(UInt128)
 # and return the PersistentOID to the type tag.
 #
 # !!! This should only be called inside a transaction.
-function _tx_store(x::Symbol)
-    # Perform a transaction to store this symbol and create the type tag. Return the
-    # type tag.
+_pmem_store(x::Symbol) = Lib.tx_strdup(unsafe_convert(Ptr{UInt8}, x))
+function _pmem_load(oid::PersistentOID{Symbol})
 
-    # Atomimcally copy the string name for the symbol to persistent memory
-    pname = unsafe_convert(Ptr{UInt8}, x)
-    string_oid = Lib.tx_strdup(pname)
-
-    return oid
 end
 
-struct ModuleLayout
+struct ModuleDef
     hasuuid::Bool
-    uuid::Int128  
     numnames::UInt8
+    uuid::Int128  
     # names
+end
+
+struct TypeDef
+    mod::ModuleLayout
+    name::PersistentOID{Symbol}
+    num_params::Int8
+    # parameters
 end
 
 # The names hang off the end of the module layout and are persistent pointers to
@@ -64,8 +65,8 @@ function _tx_load_module(oid::PersistentOID{ModuleLayout})
     pkg = layout.hasuuid ? Base.PkgID(Base.UUID(layout.uuid), name) : Base.PkgID(name)
 
     m = Base.root_module(pkg)
-    for index in 2:length(names)
-        m = getfield(m, names[index])::Module
+    for modulename in drop(names, 1)
+        m = getfield(m, modulename)::Module
     end
     return m
 end

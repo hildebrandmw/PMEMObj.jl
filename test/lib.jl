@@ -1,5 +1,5 @@
 @testset "Testing `pmemobj_open` class functions" begin
-    using PMemObj.Lib
+    using PersistentObjects.Lib
 
     testfile = joinpath(@__DIR__, "test.pool")
     ispath(testfile) && rm(testfile)
@@ -35,7 +35,7 @@
 end
 
 @testset "Testing `pmemobj_root` class functions" begin
-    using PMemObj.Lib
+    using PersistentObjects.Lib
 
     testfile = joinpath(@__DIR__, "test.pool")
     ispath(testfile) && rm(testfile)
@@ -94,7 +94,7 @@ end
 end
 
 @testset "Testing `oid_is_null` class functions" begin
-    using PMemObj.Lib
+    using PersistentObjects.Lib
 
     testfile = joinpath(@__DIR__, "test.pool")
     ispath(testfile) && rm(testfile)

@@ -1,3 +1,3 @@
-# PMemObj
+# PersistentObjects
 
 *Documentation goes here.*

@@ -369,7 +369,7 @@ function tx_free(oid::PersistentOID{T}) where {T}
     return nothing
 end
 
-function tx_strdup(str, ::Type{T} = UInt8) where {T}
+function tx_strdup(str, ::Type{T} = String) where {T}
     typenum = _typenum(T)
     oid = ccall(
         (:pmemobj_tx_strdup, libpmemobj),

@@ -1,14 +1,14 @@
-using Documenter, PMemObj
+using Documenter, PersistentObjects
 
 makedocs(
-    modules = [PMemObj],
+    modules = [PersistentObjects],
     format = :html,
-    sitename = "PMemObj.jl",
+    sitename = "PersistentObjects.jl",
     pages = Any["index.md"]
 )
 
 deploydocs(
-    repo = "github.com/hildebrandmw/PMemObj.jl.git",
+    repo = "github.com/hildebrandmw/PersistentObjects.jl.git",
     target = "build",
     julia = "1.0",
     deps = nothing,

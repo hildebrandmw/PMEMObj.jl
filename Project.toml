@@ -1,4 +1,4 @@
-name = "PMemObj"
+name = "PersistentObjects"
 uuid = "381e64fc-5dce-5b72-8d92-2301f0484b5a"
 authors = ["Mark Hildebrand <mhildebrand@ucdavis.edu>"]
 version = "0.1.0"
