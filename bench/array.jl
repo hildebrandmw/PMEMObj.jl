@@ -1,6 +1,6 @@
-using PersistentObjects
-using PersistentObjects.Persist
-import PersistentObjects.Lib
+using Persistence
+using Persistence.Persist
+import Persistence.Lib
 
 using BenchmarkTools
 

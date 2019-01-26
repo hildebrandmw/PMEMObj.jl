@@ -1,4 +1,4 @@
-module PersistentObjects
+module Persistence
 
 # exports
 export ObjectPool, PersistentOID, transaction

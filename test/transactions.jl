@@ -22,8 +22,8 @@ function _setup_transaction_pool(size, file)
 end
 
 @testset "Testing Transactions" begin
-    using PersistentObjects.Lib
-    using PersistentObjects.Transaction
+    using Persistence.Lib
+    using Persistence.Transaction
     # The best way to test transactions is probably through the "transaction" function.
     # 
     # The general approach is to have a root that is pointing to an array some where, and

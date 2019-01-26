@@ -1,4 +1,4 @@
-using PersistentObjects
+using Persistence
 using Test
 
 include("lib.jl")

@@ -12,8 +12,8 @@ end
 
 
 @testset "Testing Persist" begin
-    import PersistentObjects.Lib
-    using PersistentObjects.Persist
+    import Persistence.Lib
+    using Persistence.Persist
 
     poolfile = "test.pool"  
     ispath(poolfile) && rm(poolfile)
