@@ -1,6 +1,15 @@
+module Arrays
 #####
 ##### PersistentArray
 #####
+
+export PersistentArray
+
+using ..Lib
+using ..Transaction
+using ..Persist
+
+import Base: size, sizeof, getindex, setindex!, IndexStyle, pointer, unsafe_convert
 
 struct ArrayHandle{T,N}
     size::NTuple{N, Int}
@@ -29,19 +38,19 @@ function PersistentArray{T}(pool, size::NTuple{N, <:Integer}) where {T,N}
 end
 
 function PersistentArray(handle::Persistent{ArrayHandle{T,N}}) where {T,N}
+    _handle = retrieve(handle)
+
     # We can instantiate the array directly from the handle
-    size = handle.size
-    base = Lib.direct(handle.base)
+    size = _handle.size
+    base = Lib.direct(_handle.base)
     return PersistentArray{T,N}(handle, size, base)
 end
 
-function PersistentArray(ptr::Ptr{PersistentArray{T,N}}) where {T,N}
-    handle = unsafe_load(convert(Ptr{Persistent{ArrayHandle{T,N}}}, ptr))
-    return PersistentArray(handle)
-end
+pointer(P::PersistentArray) = P.base
+unsafe_convert(::Type{Ptr{T}}, P::PersistentArray{T}) where {T} = pointer(P)
 
 #####
-##### Custom customizations
+##### customizations
 #####
 
 function Transaction.transaction(f, P::PersistentArray{T}) where {T}
@@ -78,3 +87,5 @@ function _safe_setindex!(P::PersistentArray{T}, v, i::Integer) where {T}
 end
 
 _unsafe_setindex!(P::PersistentArray{T}, v, i::Integer) where {T} = unsafe_store!(P.base, v, i)
+
+end
