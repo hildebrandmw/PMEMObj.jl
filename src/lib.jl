@@ -439,12 +439,12 @@ function _constructor(pool_pointer::Ptr{Nothing}, obj_pointer::Ptr{T}, arg_point
     return Int32(0)
 end
 
-function alloc(pop::ObjectPool, x::T) where {T}
-    size = sizeof(T)
-    typenum = _typenum(T)
+_donothing(args...) = Int32(0)
 
+function alloc(pop::ObjectPool, size, x::T) where {T}
+    typenum = _typenum(T)
     oidp = Ref{PersistentOID{T}}()
-    f = @cfunction(_constructor, Cint, (Ptr{Cvoid}, Ptr{T}, Ptr{T}))
+    f = @cfunction(_donothing, Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}))
 
     ret = ccall(
         (:pmemobj_alloc, libpmemobj),
@@ -454,7 +454,7 @@ function alloc(pop::ObjectPool, x::T) where {T}
     )
     ret != 0 && throw(error("Allocation failed"))
 
-    return (ret, oidp[])
+    return oidp[]
 end
 
 function zalloc(pop::ObjectPool, size, ::Type{T} = Nothing) where {T}
