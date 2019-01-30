@@ -9,7 +9,7 @@ using ..Lib
 using ..Transaction
 using ..Persist
 
-import Base: size, sizeof, getindex, setindex!, IndexStyle, pointer, unsafe_convert, similar
+import Base: size, sizeof, getindex, setindex!, IndexStyle, pointer, unsafe_convert, similar, elsize
 
 struct ArrayHandle{T,N}
     size::NTuple{N, Int}
@@ -68,6 +68,7 @@ unsafe_convert(::Type{Ptr{T}}, P::PersistentArray{T}) where {T} = pointer(P)
 # Should maintain invariant that the unsafe_load is always valid.
 size(P::PersistentArray) = P.size
 sizeof(P::PersistentArray{T}) where {T} = prod(P.size) * sizeof(T)
+elsize(P::PersistentArray{T}) where {T} = sizeof(T)
 
 getindex(P::PersistentArray, i::Integer) = unsafe_load(P.base, i)
 setindex!(P::PersistentArray, v, i::Integer) = _unsafe_setindex!(P, v, i)
