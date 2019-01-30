@@ -42,7 +42,15 @@ function PersistentArray(handle::Persistent{ArrayHandle{T,N}}) where {T,N}
     # We can instantiate the array directly from the handle
     size = _handle.size
     base = Lib.direct(_handle.base)
-    return PersistentArray{T,N}(handle, size, base)
+    P = PersistentArray{T,N}(handle, size, base)
+    finalizer(_free, P)
+    return P
+end
+
+function _free(P::PersistentArray) 
+    # Free the array than free the handle
+    Lib.free(Lib.oid(P.base))
+    Persist.destroy(P.handle)
 end
 
 #####

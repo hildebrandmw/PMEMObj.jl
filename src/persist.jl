@@ -57,28 +57,6 @@ store(pool, x::Symbol) = Persistent(Lib.tx_strdup(String(x), Symbol))
 # arrays
 store(pool, x::Array{T,N}) where {T,N} = _store(pool, x, Val{isbitstype(T)}())
 
-# bits types
-# function _store(pool, x::Array{T,N}, ::Val{true}) where {T,N}
-#     oid = Lib.tx_alloc(sizeof(x), T)
-#     ptr = Lib.direct(oid)
-# 
-#     unsafe_copyto!(ptr, pointer(x), length(x))
-# 
-#     return persist(pool, ArrayHandle{T,N}(size(x), oid))
-# end
-# 
-# # non bits types
-# function _store(pool, x::Array{T,N}, ::Val{false}) where {T,N}
-#     oid = Lib.tx_alloc(length(x) * sizeof(Persistent{Nothing}), Persistent{T})
-#     ptr = Lib.direct(oid)
-# 
-#     for (index, item) in enumerate(x)
-#         unsafe_store!(ptr, store(pool, item), index)
-#     end
-# 
-#     return persist(pool, ArrayHandle{Persistent{T},N}(size(x), oid))
-# end
-
 # Fallback - check if isbits
 store(pool, x::T) where {T} = store(pool, x::T, class(T))
 function store(pool, x::T, ::IsBits) where {T}
@@ -113,26 +91,8 @@ retrieve(x::Persistent) = retrieve(Lib.direct(getoid(x)))
 retrieve(ptr::Ptr{String}) = unsafe_string(convert(Ptr{UInt8}, ptr))
 retrieve(ptr::Ptr{Symbol}) = Symbol(unsafe_string(convert(Ptr{UInt8}, ptr)))
 
-# function retrieve(ptr::Ptr{ArrayHandle{T,N}}) where {T,N} 
-#     handle = unsafe_load(ptr)
-#     A = Array{T,N}(undef, handle.size)
-#     unsafe_copyto!(pointer(A), Lib.direct(handle.base), prod(handle.size))
-#     return A
-# end
-# 
-# function retrieve(ptr::Ptr{ArrayHandle{Persistent{T},N}}) where {T,N}
-#     handle = unsafe_load(ptr)
-#     A = Array{T,N}(undef, handle.size)
-# 
-#     base = Lib.direct(handle.base)
-#     for index in 1:length(A)
-#         A[index] = retrieve(unsafe_load(base, index))
-#     end
-#     return A
-# end
-
 # Fallback
-retrieve(ptr::Ptr{T}) where {T} = retrieve(ptr::Ptr{T}, class(T))
+retrieve(ptr::Ptr{T}) where {T} = retrieve(ptr, class(T))
 retrieve(ptr::Ptr{T}, ::IsBits) where {T} = unsafe_load(ptr)
 
 function retrieve(ptr::Ptr{T}, ::Fallback) where {T}
@@ -146,5 +106,19 @@ function retrieve(ptr::Ptr{T}, ::Fallback) where {T}
     end
     return T(fields...)
 end
+
+#####
+##### destroy
+#####
+
+destroy(x::Persistent) = destroy(getoid(x))
+
+# Specializations
+destroy(oid::PersistentOID{String}) = Lib.free(oid)
+destroy(oid::PersistentOID{Symbol}) = Lib.free(oid)
+
+# Fallback
+destroy(oid::PersistentOID{T}) where {T} = destroy(oid, class(T))
+destroy(oid::PersistentOID{T}, ::IsBits) where {T} = Lib.free(oid)
 
 end
